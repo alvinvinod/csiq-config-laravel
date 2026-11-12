@@ -1,0 +1,45 @@
+{
+  "name": "csiq/config-laravel",
+  "description": "Laravel adapter for csiq/config-php. Binds IConfigurationClient from config/csiq-config.php.",
+  "version": "1.0.0",
+  "type": "library",
+  "license": "proprietary",
+  "require": {
+    "php": "^8.2",
+    "illuminate/support": "^10.0 || ^11.0 || ^12.0",
+    "illuminate/console": "^10.0 || ^11.0 || ^12.0",
+    "csiq/config-php": "^1.0"
+  },
+  "require-dev": {
+    "orchestra/testbench": "^8.0 || ^9.0 || ^10.0",
+    "phpunit/phpunit": "^10.5 || ^11.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "Csiq\\ConfigurationLaravel\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Csiq\\ConfigurationLaravel\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Csiq\\ConfigurationLaravel\\CsiqConfigServiceProvider"
+      ]
+    }
+  },
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../csiq-config-php"
+    }
+  ],
+  "minimum-stability": "stable",
+  "prefer-stable": true,
+  "scripts": {
+    "test": "phpunit"
+  }
+}
