@@ -51,8 +51,8 @@ final class ProviderTest extends TestCase
     {
         $this->app->instance(IConfigurationClient::class, new FakeConfigurationClient(['is_memo_enabled' => true]));
 
-        $this->artisan(SmokeCommand::class, ['--account' => 42, '--name' => 'is_memo_enabled'])
-            ->expectsOutputToContain('is_memo_enabled @ account 42 = true')
+        $this->artisan(SmokeCommand::class, ['--tenant' => 42, '--name' => 'is_memo_enabled'])
+            ->expectsOutputToContain('is_memo_enabled @ casTenantId 42 = true')
             ->assertSuccessful();
     }
 
@@ -63,10 +63,10 @@ final class ProviderTest extends TestCase
         $this->artisan(SetCommand::class, [
             'name' => 'is_memo_enabled',
             'value' => 'true',
-            '--account' => 42,
+            '--tenant' => 42,
             '--edited-by' => 9,
         ])
-            ->expectsOutputToContain('set is_memo_enabled @ account 42 = true (read back true)')
+            ->expectsOutputToContain('set is_memo_enabled @ casTenantId 42 = true (read back true)')
             ->assertSuccessful();
 
         self::assertTrue(

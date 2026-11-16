@@ -22,14 +22,14 @@ use Csiq\Configuration\IConfigurationClient;
 
 public function sendMemo(Request $request, IConfigurationClient $config)
 {
-    $practiceId = (int) Auth::user()->practice_id;
-    if (!$config->isFeatureEnabled('is_memo_enabled', $practiceId)) {
+    $casTenantId = (int) Auth::user()->cas_tenant_id;
+    if (!$config->isFeatureEnabled('is_memo_enabled', $casTenantId)) {
         return $this->error('Memo pushing is currently disabled.');
     }
 }
 ```
 
-`accountId` is CSIQ `practice_id`. Prefer `getAll($practiceId, $names)` for several keys in one RPC.
+`casTenantId` is the CAS tenant id. Prefer `getAll($casTenantId, $names)` for several keys in one RPC.
 
 Outside `local` / `testing`, loopback URIs and `insecure=true` throw.
 
@@ -41,15 +41,15 @@ These are the `IConfigurationClient` methods the wrapper binds. Call them on the
 
 | Method | Use when | Missing name / no stored row |
 | --- | --- | --- |
-| `isFeatureEnabled($name, $accountId, ?$userId, …)` | One **feature** toggle | `false`. Off, defined-but-empty, and unknown name are not distinguishable. A config or dev toggle name fails the call. |
-| `isDevToggleEnabled($name, $accountId, …)` | One **dev** toggle | Same as `isFeatureEnabled`: `false`. |
-| `tryGet($name, $accountId, …)` | One value, any type | `null` if the name is not a definition, or a non-toggle config has no value. A feature/dev toggle with no row is `false`, not `null`. |
-| `getConfigurationDetails($name, $accountId, …)` | Winner plus which layer it came from | Throws `ConfigurationException`. Prefer `tryGet` when missing is expected. |
-| `getAll($accountId, $names = [], …)` | Several keys, **one RPC** | Named list recommended. Empty `$names` dumps every definition. Toggles with no row are `false`. Configs and unknown names are **omitted**. |
-| `getAllAccountConfigurations($name, $accountId, $overrideLevels, …)` | Stored rows at given `OverrideLevel`s, not the winner | A toggle with no stored value is absent here even though `isFeatureEnabled` would be `false`. |
+| `isFeatureEnabled($name, $casTenantId, ?$userId, …)` | One **feature** toggle | `false`. Off, defined-but-empty, and unknown name are not distinguishable. A config or dev toggle name fails the call. |
+| `isDevToggleEnabled($name, $casTenantId, …)` | One **dev** toggle | Same as `isFeatureEnabled`: `false`. |
+| `tryGet($name, $casTenantId, …)` | One value, any type | `null` if the name is not a definition, or a non-toggle config has no value. A feature/dev toggle with no row is `false`, not `null`. |
+| `getConfigurationDetails($name, $casTenantId, …)` | Winner plus which layer it came from | Throws `ConfigurationException`. Prefer `tryGet` when missing is expected. |
+| `getAll($casTenantId, $names = [], …)` | Several keys, **one RPC** | Named list recommended. Empty `$names` dumps every definition. Toggles with no row are `false`. Configs and unknown names are **omitted**. |
+| `getAllAccountConfigurations($name, $casTenantId, $overrideLevels, …)` | Stored rows at given `OverrideLevel`s, not the winner | A toggle with no stored value is absent here even though `isFeatureEnabled` would be `false`. |
 
 ```php
-$set = $config->getAll($practiceId, ['is_memo_enabled', 'dni_regex'], userId: $userId);
+$set = $config->getAll($casTenantId, ['is_memo_enabled', 'dni_regex'], userId: $userId);
 $memoOn = $set->toggles['is_memo_enabled'] ?? false;
 $regex = $set->configurations['dni_regex'] ?? null;
 // missing vs off: array_key_exists('dni_regex', $set->configurations)
@@ -61,8 +61,8 @@ The CareStack **definition must already exist**. These calls do not create one.
 
 | Method | Effect |
 | --- | --- |
-| `upsert($name, $accountId, $value, $editedByUserId, …)` | Insert or replace at that layer. `bool` → boolean, `int` → number, `string` → string, anything else → JSON. |
-| `delete($name, $accountId, $deletedByUserId, …)` | Remove the stored value. The definition stays. A later feature/dev toggle read is `false`. |
+| `upsert($name, $casTenantId, $value, $editedByUserId, …)` | Insert or replace at that layer. `bool` → boolean, `int` → number, `string` → string, anything else → JSON. |
+| `delete($name, $casTenantId, $deletedByUserId, …)` | Remove the stored value. The definition stays. A later feature/dev toggle read is `false`. |
 
 A down service throws `ConfigurationException`. `false` from `isFeatureEnabled` is a successful RPC.
 
@@ -85,8 +85,8 @@ Retry / keepalive keys match `csiq/config-php` (`CONFIG_SERVICE_RETRY_*`, `CONFI
 Live gRPC (same bound client as HTTP):
 
 ```bash
-php artisan csiq-config:smoke --account=1 --name=is_memo_enabled
-php artisan csiq-config:set is_memo_enabled true --account=1 --edited-by=1
+php artisan csiq-config:smoke --tenant=1 --name=is_memo_enabled
+php artisan csiq-config:set is_memo_enabled true --tenant=1 --edited-by=1
 ```
 
 `--as=bool|int|string` overrides auto detection on `set`. The definition must already exist.
@@ -98,7 +98,7 @@ APP_ENV=local \
 CONFIG_SERVICE_URI=localhost:7154 \
 CONFIG_SERVICE_INSECURE=false \
 CONFIG_SERVICE_ROOT_CERT_PATH=/path/to/ca.pem \
-php artisan csiq-config:smoke --account=1 --name=is_memo_enabled
+php artisan csiq-config:smoke --tenant=1 --name=is_memo_enabled
 ```
 
 ## Tests
