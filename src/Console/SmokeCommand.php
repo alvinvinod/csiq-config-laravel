@@ -9,16 +9,16 @@ use Illuminate\Console\Command;
 
 final class SmokeCommand extends Command
 {
-    protected $signature = 'csiq-config:smoke {--account=1} {--name=is_memo_enabled}';
+    protected $signature = 'csiq-config:smoke {--tenant=1 : CAS tenant id} {--name=is_memo_enabled}';
 
     protected $description = 'Call CareStack Configuration once through the bound client';
 
     public function handle(IConfigurationClient $client): int
     {
-        $account = (int) $this->option('account');
+        $casTenantId = (int) $this->option('tenant');
         $name = (string) $this->option('name');
-        $on = $client->isFeatureEnabled($name, $account);
-        $this->info(sprintf('%s @ account %d = %s', $name, $account, $on ? 'true' : 'false'));
+        $on = $client->isFeatureEnabled($name, $casTenantId);
+        $this->info(sprintf('%s @ casTenantId %d = %s', $name, $casTenantId, $on ? 'true' : 'false'));
 
         return self::SUCCESS;
     }

@@ -13,7 +13,7 @@ final class SetCommand extends Command
     protected $signature = 'csiq-config:set
         {name : Definition name, e.g. is_memo_enabled}
         {value : Value to store}
-        {--account=1 : CSIQ practice_id (CareStack accountId)}
+        {--tenant=1 : CAS tenant id (CareStack accountId)}
         {--edited-by=1 : editedByUserId}
         {--user= : Optional user override layer}
         {--as=auto : auto|bool|int|string}';
@@ -23,22 +23,22 @@ final class SetCommand extends Command
     public function handle(IConfigurationClient $client): int
     {
         $name = (string) $this->argument('name');
-        $account = (int) $this->option('account');
+        $casTenantId = (int) $this->option('tenant');
         $editedBy = (int) $this->option('edited-by');
         $userRaw = $this->option('user');
         $userId = is_numeric($userRaw) ? (int) $userRaw : null;
         $value = $this->decodeValue((string) $this->argument('value'), (string) $this->option('as'));
 
-        $client->upsert($name, $account, $value, $editedBy, userId: $userId);
+        $client->upsert($name, $casTenantId, $value, $editedBy, userId: $userId);
 
         $read = is_bool($value)
-            ? $client->isFeatureEnabled($name, $account, userId: $userId)
-            : $client->tryGet($name, $account, userId: $userId);
+            ? $client->isFeatureEnabled($name, $casTenantId, userId: $userId)
+            : $client->tryGet($name, $casTenantId, userId: $userId);
 
         $this->info(sprintf(
-            'set %s @ account %d = %s (read back %s)',
+            'set %s @ casTenantId %d = %s (read back %s)',
             $name,
-            $account,
+            $casTenantId,
             $this->show($value),
             $this->show($read),
         ));
