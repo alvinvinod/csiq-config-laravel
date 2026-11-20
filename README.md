@@ -31,7 +31,7 @@ public function sendMemo(Request $request, IConfigurationClient $config)
 
 `casTenantId` is the CAS tenant id. Prefer `getAll($casTenantId, $names)` for several keys in one RPC.
 
-Outside `local` / `testing`, loopback URIs and `insecure=true` throw.
+Outside `local` / `testing`, loopback URIs (`127.0.0.0/8`, `localhost`, `::1`, `0.0.0.0`) and `insecure=true` throw.
 
 ## Supported operations
 
