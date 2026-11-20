@@ -28,6 +28,14 @@ final class ProductionGuardTest extends TestCase
         ProductionGuard::assert('production', ['uri' => 'localhost:7154', 'insecure' => false]);
     }
 
+    public function testRejectsNonCanonicalLoopbackOutsideLocal(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('loopback');
+
+        ProductionGuard::assert('production', ['uri' => '127.0.0.2:7154', 'insecure' => false]);
+    }
+
     public function testRejectsInsecureOutsideLocal(): void
     {
         $this->expectException(RuntimeException::class);

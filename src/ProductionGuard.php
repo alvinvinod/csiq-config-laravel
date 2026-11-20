@@ -4,25 +4,27 @@ declare(strict_types=1);
 
 namespace Csiq\ConfigurationLaravel;
 
+use Csiq\Configuration\ProductionGuard as HostGuard;
 use RuntimeException;
 
-/** Blocks loopback hosts and plaintext gRPC outside local/testing. */
 final class ProductionGuard
 {
+    /** @var list<string> */
+    private const LOCAL_ENVIRONMENTS = ['local', 'testing'];
+
     /** @param array<string, mixed> $settings */
     public static function assert(string $environment, array $settings): void
     {
-        if (in_array($environment, ['local', 'testing'], true)) {
+        if (in_array(strtolower($environment), self::LOCAL_ENVIRONMENTS, true)) {
             return;
         }
 
-        $uri = (string) ($settings['uri'] ?? '');
-        $host = strtolower((string) parse_url('//' . $uri, PHP_URL_HOST));
-        if (in_array($host, ['localhost', '127.0.0.1', '::1'], true)) {
+        $uri = is_string($settings['uri'] ?? null) ? $settings['uri'] : '';
+        $insecure = !empty($settings['insecure']);
+        if (HostGuard::isLocalHost($uri)) {
             throw new RuntimeException('csiq-config uri must not be loopback outside local/testing');
         }
-
-        if (!empty($settings['insecure'])) {
+        if ($insecure) {
             throw new RuntimeException('csiq-config insecure must be false outside local/testing');
         }
     }
